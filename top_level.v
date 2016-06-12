@@ -49,16 +49,17 @@ begin
       gameOverReg <= 1'b1;
 end
 
-// speaker output
-//reg [17:0] speaker_cntr;
-//always@(posedge clk)
-//begin
-//   if(rst)
-//      speaker_cntr <= 18'b0;
-//   else
-//      speaker_cntr <= speaker_cntr + 1'b1;
-//end
-assign speaker = 1'b0; //speaker_cntr[17];
+// Speaker output
+reg [16:0] speaker_cntr;
+always@(posedge clk)
+begin
+   if(rst)
+      speaker_cntr <= 18'b0;
+   else
+      speaker_cntr <= speaker_cntr + 1'b1;
+end
+
+assign speaker = (gameOverReg) ? speaker_cntr[16] : 1'b0;
 
 // VGA controller
 reg [1:0] vga_en;
@@ -106,15 +107,6 @@ objectbank objectbank(
 );
 
 
-reg [25:0] cntr;
-always@(posedge clk)
-begin
-   if(rst)
-		cntr <= 26'b0;
-	else
-		cntr <= cntr + 1'b1;
-end
-
 // Keyboard management
 wire [4:0] keys_pressed;
 keyboard keyboard_controller(
@@ -126,21 +118,19 @@ keyboard keyboard_controller(
 );
 
 always@(posedge clk)
-begin
-   if(keys_pressed[0])      // up
-		vpos <= vpos - 1'b1;
-	else if(keys_pressed[2]) // down
-		vpos <= vpos + 1'b1;
-	else if(keys_pressed[1]) // left
-	begin
+begin	
+	if(keys_pressed[1]) // left
+   begin
+      shift_object_right <= 1'b0;
       shift_object_left <= 1'b1;
-		hpos <= hpos - 1'b1;
    end
+   
 	else if(keys_pressed[3]) // right
-	begin
+   begin
       shift_object_right <= 1'b1;
-		hpos <= hpos + 1'b1;
+      shift_object_left <= 1'b0;
    end
+   
 	else
 	begin
       shift_object_right <= 1'b0;
