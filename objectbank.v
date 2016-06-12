@@ -7,7 +7,8 @@ module objectbank(
    
    input  [10:0] cntr_h,
    input  [ 9:0] cntr_v,
-   output [ 5:0] pixel
+   output [ 5:0] pixel,
+   output gameOver
 );
 
 parameter BACKGROUND_COLOR = 6'b010000;
@@ -75,16 +76,22 @@ begin
 end
 
 reg [5:0] rgb;
+reg gameOver_reg;
 always@(*)
 begin
    rgb = BACKGROUND_COLOR; // Background color, temporary
+   gameOver_reg = 1'b0;
    for(k=OBJECT_BANK_SIZE-1; k >= 0; k=k-1)
    begin
-      if(ObjectsStatus[k][`ObjectActive] == 1'b1)
          rgb = {ObjectsBank[k][`ObjectBitmap], 2'b11, ObjectsBank[k][`ObjectBitmap]};
+      if(ObjectsStatus[k][`ObjectActive] == 1'b1 & ObjectsBank[k][`ObjectExists] == 1'b1) begin
+         if( (k>0) & (ObjectsStatus[0][`ObjectActive] == 1'b1) )
+            gameOver_reg = 1'b1;
+      end
    end
 end
 
 assign pixel = rgb;
+assign gameOver = gameOver_reg;
 
 endmodule

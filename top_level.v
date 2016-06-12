@@ -38,6 +38,16 @@ clkgen clkgen(
    .CLK_OUT1(clk)
 );
 
+// Game over signal
+wire gameOver;
+reg gameOverReg;
+always@(posedge clk)
+begin
+   if(rst)
+      gameOverReg <= 1'b0;
+   else if(gameOver)
+      gameOverReg <= 1'b1;
+end
 
 // speaker output
 //reg [17:0] speaker_cntr;
@@ -93,22 +103,10 @@ objectbank objectbank(
    .pixel(pixel),
    
    .shift_object_left(shift_object_left),
-   .shift_object_right(shift_object_right)
+   .shift_object_right(shift_object_right),
+   .gameOver(gameOver)
 );
 
-wire [4:0] keys_pressed;
-
-leds leds_controller(
-   .clk(clk),
-   .rst(rst),
-   .led({3'b0,keys_pressed}),
-   .dig0(4'b0),
-   .dig1(4'b0),
-   .cpld_clk(cpld_clk),
-   .cpld_rstn(cpld_rstn),
-   .cpld_ld(cpld_load),
-   .cpld_mosi(cpld_mosi)
-);
 
 reg [25:0] cntr;
 always@(posedge clk)
@@ -120,6 +118,7 @@ begin
 end
 
 // Keyboard management
+wire [4:0] keys_pressed;
 keyboard keyboard_controller(
 	.clk(clk),
    .rst(rst),
@@ -152,4 +151,16 @@ begin
 end
 
 // Visual Feedback
+leds leds_controller(
+   .clk(clk),
+   .rst(rst),
+   .led({2'b0, gameOverReg, keys_pressed}),
+   .dig0(4'b0),
+   .dig1(4'b0),
+   .cpld_clk(cpld_clk),
+   .cpld_rstn(cpld_rstn),
+   .cpld_ld(cpld_load),
+   .cpld_mosi(cpld_mosi)
+);
+
 endmodule
