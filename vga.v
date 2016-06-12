@@ -48,14 +48,14 @@ end
 // Vertical pixel counter
 reg [9:0] cntr_v; // Vertical pixel counter
 wire   cntr_vmaxed;
-assign cntr_vmaxed = ( cntr_v == V_SIZE-1 );
-assign nextV = (cntr_vmaxed) ? 10'b0 : (cntr_v + 1'b1);
+assign cntr_vmaxed = ( cntr_v == V_SIZE-1 );                                             
+assign nextV = (cntr_hmaxed) ? (cntr_vmaxed ? 10'b0 : cntr_v + 1'b1) : (cntr_v);
 
 always @ (posedge clk)
 begin
    if(rst)
       cntr_v <= 0;
-	else if(cntr_vmaxed)
+	else if(cntr_vmaxed & cntr_hmaxed)
 	   cntr_v <= 0;
    else if(cntr_hmaxed)
       cntr_v <= cntr_v + 1'b1;
