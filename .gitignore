@@ -87,3 +87,11 @@ _xmsgs/
 *.rbt
 *.isc
 *.bin
+isim/
+*.exe
+*.wdb
+xilinxsim.ini
+*.png
+fuse.xmsgs
+fuseRelaunch.cmd
+isim.log
