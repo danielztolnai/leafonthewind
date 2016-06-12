@@ -56,7 +56,7 @@ begin
       data_shr <= {ps2_d, data_shr[10:1]};
 end
 
-// Store the last two valid bytes
+// Store the last valid byte
 reg [7:0] data_last;
 always @ (posedge clk)
 begin
@@ -71,7 +71,7 @@ begin
    end
 end
 
-// scan code to ascii conversion
+// Scand code interpretation
 always @ ( posedge clk )
 begin
 	if (data_valid)

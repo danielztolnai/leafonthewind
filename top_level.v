@@ -1,26 +1,35 @@
 `timescale 1ns / 1ps
 
 module top_level(
+   // Clock and reset
    input  clk50M,
 	input  rstn,
 	
+   // CPLD
    output cpld_clk,
    output cpld_rstn,
    output cpld_load,
    output cpld_mosi,
    output cpld_jtagen,
 	
+   // VGA
 	output       vga_hsync,
 	output       vga_vsync,
 	output [1:0] vga_red,
 	output [1:0] vga_green,
 	output [1:0] vga_blue,
 	
+   // PS2
 	input ps2_c,
 	input ps2_d,
 	
+   // Sound
 	output speaker
 );
+
+wire rst;
+assign rst = ~rstn;
+assign cpld_jtagen = 1'b0;
 
 // 100 MHz clock generator
 wire clk;
@@ -29,8 +38,6 @@ clkgen clkgen(
    .CLK_OUT1(clk)
 );
 
-assign rst = ~rstn;
-assign cpld_jtagen = 1'b0;
 
 // speaker output
 //reg [17:0] speaker_cntr;
@@ -43,6 +50,7 @@ assign cpld_jtagen = 1'b0;
 //end
 assign speaker = 1'b0; //speaker_cntr[17];
 
+// VGA controller
 reg [1:0] vga_en;
 always@(posedge clk)
 begin
@@ -74,6 +82,7 @@ vga vga_controller(
    .pixel(pixel)
 );
 
+// Object bank and game logic
 reg shift_object_left  = 1'b0;
 reg shift_object_right = 1'b0;
 
@@ -110,6 +119,7 @@ begin
 		cntr <= cntr + 1'b1;
 end
 
+// Keyboard management
 keyboard keyboard_controller(
 	.clk(clk),
    .rst(rst),
@@ -141,4 +151,5 @@ begin
 	end
 end
 
+// Visual Feedback
 endmodule
