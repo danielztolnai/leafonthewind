@@ -25,10 +25,10 @@ reg [26:0] ObjectsBank[OBJECT_BANK_SIZE-1:0];
 integer k;
 initial
 begin
-   ObjectsBank[0] = {1'b0, 1'b0, 4'b0000, 1'b1, 10'd550, 10'd100};
-   ObjectsBank[1] = {1'b0, 1'b1, 4'b0100, 1'b1, 10'd10,  10'd10};
-   ObjectsBank[2] = {1'b1, 1'b0, 4'b1000, 1'b1, 10'd80,  10'd400};
-   ObjectsBank[3] = {1'b1, 1'b1, 4'b1100, 1'b1, 10'd300, 10'd200};
+   ObjectsBank[0] = {1'b0, 1'b0, 4'b1000, 1'b1, 10'd550, 10'd100};
+   ObjectsBank[1] = {1'b0, 1'b1, 4'b0100, 1'b1, 10'd0,  10'd0};
+   ObjectsBank[2] = {1'b1, 1'b0, 4'b0110, 1'b1, 10'd80,  10'd400};
+   ObjectsBank[3] = {1'b1, 1'b1, 4'b0000, 1'b1, 10'd568, 10'd768};
    for (k = 4; k < OBJECT_BANK_SIZE; k=k+1)
    begin
       ObjectsBank[k] = 27'b0;
@@ -102,12 +102,16 @@ bitmapbank bitmapbank(
    .clk(clk),
    .addr(ObjectsBank[objaddr][`ObjectBitmap]),
    .width(ObjectsBank[objaddr][`ObjectWidth]),
-   .height(ObjectsBank[objaddr][`ObjectHeight]),
    .hpos(ObjectsStatus[objaddr][`ObjectPixelH]),
    .vpos(ObjectsStatus[objaddr][`ObjectPixelV]),
    .pixel(rgb)
 );
 
-assign pixel = (objaddr == 5'b11111) ? BACKGROUND_COLOR : rgb;
+reg [4:0] objaddrReg;
+always@(posedge clk)
+begin
+   objaddrReg <= objaddr;
+end
+assign pixel = (objaddrReg == 5'b11111) ? BACKGROUND_COLOR : rgb;
 
 endmodule
