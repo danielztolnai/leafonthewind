@@ -14,30 +14,31 @@ module objectbank(
 parameter BACKGROUND_COLOR = 6'b010000;
 parameter OBJECT_BANK_SIZE = 16;
  
-`define ObjectPositionH  9: 0
-`define ObjectPositionV 19:10
-`define ObjectExists       20
-`define ObjectBitmap    22:21
-`define ObjectWidth     28:23
-`define ObjectHeight    34:29
-reg [34:0] ObjectsBank[OBJECT_BANK_SIZE-1:0];
+`define ObjectPositionH  9: 0	// Position on the screen (0-799)
+`define ObjectPositionV 19:10 // Position on the screen (0-599)
+`define ObjectExists       20 // Whether the object exists
+`define ObjectBitmap    24:21 // The bitmap's address (Might be better to switch to "object types")
+`define ObjectWidth        25 // Width in 16 pixel blocks
+`define ObjectHeight       26 // Height in 16 pixel blocks
+reg [26:0] ObjectsBank[OBJECT_BANK_SIZE-1:0];
 
 integer k;
 initial
 begin
-   ObjectsBank[0] = {6'd32, 6'd32, 2'b11, 1'b1, 10'd550, 10'd100};
-   ObjectsBank[1] = {6'd32, 6'd32, 2'b00, 1'b1, 10'd120, 10'd120};
-   ObjectsBank[2] = {6'd32, 6'd32, 2'b01, 1'b1, 10'd80,  10'd400};
-   for (k = 3; k < OBJECT_BANK_SIZE; k=k+1)
+   ObjectsBank[0] = {1'b0, 1'b0, 4'b0000, 1'b1, 10'd550, 10'd100};
+   ObjectsBank[1] = {1'b0, 1'b1, 4'b0100, 1'b1, 10'd10,  10'd10};
+   ObjectsBank[2] = {1'b1, 1'b0, 4'b1000, 1'b1, 10'd80,  10'd400};
+   ObjectsBank[3] = {1'b1, 1'b1, 4'b1100, 1'b1, 10'd300, 10'd200};
+   for (k = 4; k < OBJECT_BANK_SIZE; k=k+1)
    begin
-      ObjectsBank[k] = 35'b0;
+      ObjectsBank[k] = 27'b0;
    end
 end
 
-`define ObjectActive        0
-`define ObjectPixelH     6: 1
-`define ObjectPixelV    12: 7
-wire [12:0] ObjectsStatus[OBJECT_BANK_SIZE-1:0];
+`define ObjectActive        0 // Object is on the current pixel
+`define ObjectPixelH     5: 1 // Position within the object
+`define ObjectPixelV    10: 6 // Position witihn the object
+wire [10:0] ObjectsStatus[OBJECT_BANK_SIZE-1:0];
 
 genvar i;
 generate
@@ -45,8 +46,10 @@ generate
    begin: GenerateObjectsStatus
    
       assign ObjectsStatus[i][`ObjectActive] =
-         (cntr_v >= ObjectsBank[i][`ObjectPositionV]) & (cntr_v < (ObjectsBank[i][`ObjectPositionV] + ObjectsBank[i][`ObjectHeight])) &
-         (cntr_h >= ObjectsBank[i][`ObjectPositionH]) & (cntr_h < (ObjectsBank[i][`ObjectPositionH] + ObjectsBank[i][`ObjectWidth] ));
+         (cntr_v >= ObjectsBank[i][`ObjectPositionV]) &
+         (cntr_v < (ObjectsBank[i][`ObjectPositionV] + 5'd16+(16*ObjectsBank[i][`ObjectHeight]))) &
+         (cntr_h >= ObjectsBank[i][`ObjectPositionH]) &
+         (cntr_h < (ObjectsBank[i][`ObjectPositionH] + 5'd16+(16*ObjectsBank[i][`ObjectWidth] )));
       assign ObjectsStatus[i][`ObjectPixelH] = cntr_h - ObjectsBank[i][`ObjectPositionH];
       assign ObjectsStatus[i][`ObjectPixelV] = cntr_v - ObjectsBank[i][`ObjectPositionV];
       
@@ -75,23 +78,36 @@ begin
    end
 end
 
-reg [5:0] rgb;
+reg [4:0] objaddr;
 reg gameOver_reg;
 always@(*)
 begin
-   rgb = BACKGROUND_COLOR; // Background color, temporary
+   objaddr = 5'b11111;
    gameOver_reg = 1'b0;
    for(k=OBJECT_BANK_SIZE-1; k >= 0; k=k-1)
    begin
-         rgb = {ObjectsBank[k][`ObjectBitmap], 2'b11, ObjectsBank[k][`ObjectBitmap]};
       if(ObjectsStatus[k][`ObjectActive] == 1'b1 & ObjectsBank[k][`ObjectExists] == 1'b1) begin
+         objaddr = k;
          if( (k>0) & (ObjectsStatus[0][`ObjectActive] == 1'b1) )
             gameOver_reg = 1'b1;
       end
    end
 end
 
-assign pixel = rgb;
 assign gameOver = gameOver_reg;
+
+// Bitmap bank
+wire [5:0] rgb;
+bitmapbank bitmapbank(
+   .clk(clk),
+   .addr(ObjectsBank[objaddr][`ObjectBitmap]),
+   .width(ObjectsBank[objaddr][`ObjectWidth]),
+   .height(ObjectsBank[objaddr][`ObjectHeight]),
+   .hpos(ObjectsStatus[objaddr][`ObjectPixelH]),
+   .vpos(ObjectsStatus[objaddr][`ObjectPixelV]),
+   .pixel(rgb)
+);
+
+assign pixel = (objaddr == 5'b11111) ? BACKGROUND_COLOR : rgb;
 
 endmodule

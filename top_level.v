@@ -70,11 +70,9 @@ begin
 		vga_en <= vga_en + 1'b1;
 end
 
-reg [9:0] hpos=200, vpos=200;
-
-wire [ 5:0] pixel;
 wire [10:0] cntr_h;
 wire [ 9:0] cntr_v;
+wire [ 5:0] pixel;
 
 vga vga_controller(
 	.clk(clk),
