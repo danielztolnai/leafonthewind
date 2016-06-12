@@ -11,7 +11,7 @@ module objectbank(
    output gameOver
 );
 
-parameter BACKGROUND_COLOR = 6'b010000;
+parameter BACKGROUND_COLOR = 6'b110000;
 parameter OBJECT_BANK_SIZE = 16;
  
 `define ObjectPositionH  9: 0	// Position on the screen (0-799)
@@ -47,9 +47,9 @@ generate
    
       assign ObjectsStatus[i][`ObjectActive] =
          (cntr_v >= ObjectsBank[i][`ObjectPositionV]) &
-         (cntr_v < (ObjectsBank[i][`ObjectPositionV] + 5'd16+(16*ObjectsBank[i][`ObjectHeight]))) &
+         (cntr_v < (ObjectsBank[i][`ObjectPositionV] + 5'd16 + (ObjectsBank[i][`ObjectHeight] << 4))) &
          (cntr_h >= ObjectsBank[i][`ObjectPositionH]) &
-         (cntr_h < (ObjectsBank[i][`ObjectPositionH] + 5'd16+(16*ObjectsBank[i][`ObjectWidth] )));
+         (cntr_h < (ObjectsBank[i][`ObjectPositionH] + 5'd16 + (ObjectsBank[i][`ObjectWidth]  << 4)));
       assign ObjectsStatus[i][`ObjectPixelH] = cntr_h - ObjectsBank[i][`ObjectPositionH];
       assign ObjectsStatus[i][`ObjectPixelV] = cntr_v - ObjectsBank[i][`ObjectPositionV];
       
